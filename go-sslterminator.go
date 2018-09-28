@@ -15,8 +15,8 @@ var certificatePath string
 var keyPath string
 
 func init() {
-	flag.StringVar(&localAddress, "l", ":44300", "local address")
-	flag.StringVar(&backendAddress, "b", ":8000", "backend address")
+	flag.StringVar(&localAddress, "l", ":443", "local address")
+	flag.StringVar(&backendAddress, "b", ":80", "backend address")
 	flag.StringVar(&certificatePath, "c", "cert.pem", "SSL certificate path")
 	flag.StringVar(&keyPath, "k", "key.pem", "SSL key path")
 }
@@ -38,7 +38,7 @@ func main() {
 		log.Fatalf("error in tls.Listen: %s", err)
 	}
 
-	log.Printf("local server on: %s, backend server on: %s", localAddress, backendAddress)
+	log.Printf("certificate: %s, key: %s, local server on: %s, backend server on: %s", certificatePath, keyPath, localAddress, backendAddress)
 
 	for {
 		conn, err := listener.Accept()
@@ -69,12 +69,12 @@ func handle(clientConn net.Conn) {
 			return
 		}
 
-		go Tunnel(clientConn, backendConn)
-		go Tunnel(backendConn, clientConn)
+		go tunnel(clientConn, backendConn)
+		go tunnel(backendConn, clientConn)
 	}
 }
 
-func Tunnel(from, to io.ReadWriteCloser) {
+func tunnel(from, to io.ReadWriteCloser) {
 	defer func() {
 		if r := recover(); r != nil {
 			log.Printf("recovered while tunneling")
