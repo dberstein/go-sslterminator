@@ -49,5 +49,9 @@ func main() {
 		})
 	}(proxyHandler))
 
-	http.ListenAndServeTLS(localAddress, certificatePath, keyPath, mux)
+	server := &http.Server{
+		Addr: localAddress, Handler: mux,
+		TLSNextProto: make(map[string]func(s *http.Server, c *tls.Conn, h http.Handler)), // disable HTTP/2
+	}
+	server.ListenAndServeTLS(certificatePath, keyPath)
 }
